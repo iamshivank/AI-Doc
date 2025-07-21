@@ -7,12 +7,21 @@ const requestStore = new Map();
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
 const RATE_LIMIT_MAX_REQUESTS = 100; // Max requests per window
 
-// Helper function to get client identifier
+/**
+ * Retrieves the client identifier from the request, prioritizing the IP address.
+ * @param {object} req - The Express request object.
+ * @return {string} The client identifier, typically the IP address, or 'unknown' if unavailable.
+ */
 function getClientId(req) {
   return req.ip || req.connection.remoteAddress || 'unknown';
 }
 
-// Helper function to log authentication attempts
+/**
+ * Logs the outcome of an authentication attempt with timestamp, client ID, status, and optional failure reason.
+ * @param {string} clientId - The identifier of the client attempting authentication.
+ * @param {boolean} success - Indicates whether the authentication was successful.
+ * @param {string} [reason] - Optional reason for authentication failure.
+ */
 function logAuthAttempt(clientId, success, reason = '') {
   const timestamp = new Date().toISOString();
   const status = success ? 'SUCCESS' : 'FAILED';
@@ -25,7 +34,12 @@ function logAuthAttempt(clientId, success, reason = '') {
   }
 }
 
-// Rate limiting function
+/**
+ * Checks whether a client has exceeded the allowed number of requests within the rate limit window.
+ *
+ * @param {string} clientId - Unique identifier for the client (typically an IP address).
+ * @return {Object} An object indicating if the request is allowed, the number of remaining requests, and the reset time for the rate limit window.
+ */
 function checkRateLimit(clientId) {
   const now = Date.now();
   const clientData = requestStore.get(clientId) || {
