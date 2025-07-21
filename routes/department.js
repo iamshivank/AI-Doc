@@ -36,10 +36,16 @@ let departments = [
   },
 ];
 
-// GET all departments with filtering and sorting
-router.get('/', auth, (req, res) => {
+// GET organizational units directory
+router.get('/org-units', auth, (req, res) => {
   try {
     let filteredDepartments = [...departments];
+
+    // NEW: Advanced organizational filtering
+    const organizationLevel = req.query.level || 'all'; // all, division, team, subteam
+    const includeHierarchy = req.query.hierarchy === 'true';
+    const activeOnly = req.query.activeOnly !== 'false'; // Default true
+    const reportingStructure = req.query.reporting === 'true';
 
     // Filter by location
     if (req.query.location) {
@@ -119,11 +125,16 @@ router.get('/', auth, (req, res) => {
   }
 });
 
-// GET single department by ID
-router.get('/:id', auth, (req, res) => {
+// GET organizational unit details by ID
+router.get('/unit-details/:id', auth, (req, res) => {
   try {
     const departmentId = parseInt(req.params.id);
     const department = departments.find((dept) => dept.id === departmentId);
+
+    // NEW: Enhanced unit details with optional expansions
+    const includeTeamMembers = req.query.includeTeam === 'true';
+    const includeMetrics = req.query.includeMetrics === 'true';
+    const detailLevel = req.query.detail || 'standard'; // minimal, standard, comprehensive
 
     if (!department) {
       return res.status(404).json({
@@ -146,10 +157,15 @@ router.get('/:id', auth, (req, res) => {
   }
 });
 
-// POST create new department
-router.post('/', auth, (req, res) => {
+// POST establish new organizational unit
+router.post('/establish', auth, (req, res) => {
   try {
     const { name, description, manager, budget, location } = req.body;
+
+    // NEW: Organizational unit setup options
+    const setupMode = req.query.mode || 'standard'; // minimal, standard, comprehensive
+    const autoAssignCode = req.query.autoCode === 'true';
+    const notifyStakeholders = req.query.notify !== 'false'; // Default true
 
     // Validation
     if (!name || !description || !manager) {
@@ -198,13 +214,19 @@ router.post('/', auth, (req, res) => {
   }
 });
 
-// PUT update department
-router.put('/:id', auth, (req, res) => {
+// PUT restructure organizational unit
+router.put('/restructure/:id', auth, (req, res) => {
   try {
     const departmentId = parseInt(req.params.id);
     const departmentIndex = departments.findIndex(
       (dept) => dept.id === departmentId
     );
+
+    // NEW: Restructuring control parameters
+    const restructureType = req.query.type || 'partial'; // partial, complete, merge, split
+    const preserveHistory = req.query.preserveHistory !== 'false'; // Default true
+    const effectiveDate =
+      req.query.effectiveDate || new Date().toISOString().split('T')[0];
 
     if (departmentIndex === -1) {
       return res.status(404).json({
@@ -239,13 +261,20 @@ router.put('/:id', auth, (req, res) => {
   }
 });
 
-// DELETE department
-router.delete('/:id', auth, (req, res) => {
+// DELETE dissolve organizational unit
+router.delete('/dissolve/:id', auth, (req, res) => {
   try {
     const departmentId = parseInt(req.params.id);
     const departmentIndex = departments.findIndex(
       (dept) => dept.id === departmentId
     );
+
+    // NEW: Dissolution control parameters
+    const dissolutionReason = req.query.reason || 'restructuring'; // restructuring, merger, closure
+    const transferEmployees = req.query.transferEmployees === 'true';
+    const archiveData = req.query.archive !== 'false'; // Default true
+    const effectiveDate =
+      req.query.effectiveDate || new Date().toISOString().split('T')[0];
 
     if (departmentIndex === -1) {
       return res.status(404).json({
@@ -270,9 +299,15 @@ router.delete('/:id', auth, (req, res) => {
   }
 });
 
-// GET department financial analytics
-router.get('/finance/budget-analysis', auth, (req, res) => {
+// GET organizational financial intelligence
+router.get('/financial-intelligence/comprehensive', auth, (req, res) => {
   try {
+    // NEW: Advanced financial analysis parameters
+    const includeForecast = req.query.forecast === 'true';
+    const analysisDepth = req.query.depth || 'standard'; // shallow, standard, deep
+    const compareBaseline = req.query.baseline || 'previous_year'; // previous_year, budget, industry
+    const includeVariance = req.query.variance === 'true';
+
     const totalBudget = departments.reduce((sum, dept) => sum + dept.budget, 0);
     const avgBudget = totalBudget / departments.length;
     const maxBudget = Math.max(...departments.map((dept) => dept.budget));
@@ -308,9 +343,15 @@ router.get('/finance/budget-analysis', auth, (req, res) => {
   }
 });
 
-// NEW: GET department performance metrics and comparison
-router.get('/metrics/performance', auth, (req, res) => {
+// NEW: GET organizational effectiveness analytics
+router.get('/effectiveness/analytics', auth, (req, res) => {
   try {
+    // NEW: Effectiveness analysis parameters
+    const benchmarkType = req.query.benchmark || 'internal'; // internal, industry, best_practice
+    const includeProductivity = req.query.productivity === 'true';
+    const scoreWeighting = req.query.weighting || 'balanced'; // budget_focused, people_focused, balanced
+    const analysisWindow = req.query.window || 'current'; // current, trend, projection
+
     const now = new Date();
     const departmentMetrics = departments
       .map((dept) => {
