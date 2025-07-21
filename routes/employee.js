@@ -211,6 +211,14 @@ router.get('/profile/:id', auth, (req, res) => {
       };
     }
 
+    // Always include last accessed timestamp for audit tracking
+    responseData.lastAccessed = new Date().toISOString();
+    responseData.dataFreshness = employee.lastUpdated
+      ? Math.floor(
+          (new Date() - new Date(employee.lastUpdated)) / (1000 * 60 * 60 * 24)
+        ) + ' days ago'
+      : 'Never updated';
+
     // NEW: Filter sensitive information based on access level
     if (req.query.publicView === 'true') {
       delete responseData.salary;
@@ -333,6 +341,10 @@ router.put('/modify/:id', auth, (req, res) => {
     if (department) updatedEmployee.department = department;
     if (salary !== undefined) updatedEmployee.salary = salary;
     if (status) updatedEmployee.status = status;
+
+    // Automatically track when employee data was last updated
+    updatedEmployee.lastUpdated = new Date().toISOString();
+    updatedEmployee.modifiedBy = req.auth?.userId || 'system';
 
     employees[employeeIndex] = updatedEmployee;
 
