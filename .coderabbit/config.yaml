@@ -1,153 +1,158 @@
-# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
-language: en-US
-early_access: true
+# # yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+# language: en-US
+# early_access: true
 
-# Custom tone instructions for documentation focus
-tone_instructions: |
-  Focus heavily on documentation implications of code changes. 
-  Always identify changes that require documentation updates.
-  Be specific about what needs to be documented and where.
-  Highlight API contract changes, breaking changes, and new features.
+# # Custom tone instructions for documentation focus
+# tone_instructions: |
+#   Focus heavily on documentation implications of code changes. 
+#   Always identify changes that require documentation updates.
+#   Be specific about what needs to be documented and where.
+#   Highlight API contract changes, breaking changes, and new features.
+
+# reviews:
+#   # Use assertive profile to ensure documentation issues are highlighted
+#   profile: assertive
+  
+#   # Request changes when documentation updates are needed
+#   request_changes_workflow: true
+  
+#   # Enable high-level summary with custom placeholder
+#   high_level_summary: true
+#   high_level_summary_placeholder: |
+#     @coderabbitai summary
+    
+#     **Documentation Impact Analysis:**
+#     Please provide a detailed analysis of documentation changes required for this PR, including:
+#     - API endpoint changes (new, modified, or deprecated)
+#     - Query parameter additions or modifications
+#     - Request/response body changes
+#     - Rate limit or quota changes
+#     - Authentication/authorization changes
+#     - Breaking changes that affect existing integrations
+#     - New features that need user guides
+#     - Error codes or validation rule changes
+  
+#   # Enable detailed review features
+#   review_status: true
+#   changed_files_summary: true
+#   sequence_diagrams: true
+#   assess_linked_issues: true
+  
+#   # # Path-specific instructions for documentation focus
+#   # path_instructions:
+#   #   - path: "api/**"
+#   #     instructions: |
+#   #       For all API changes:
+#   #       1. Identify ALL endpoint modifications (URL, method, parameters)
+#   #       2. List new query parameters with their types and validation rules
+#   #       3. Document request/response body changes with examples
+#   #       4. Flag any breaking changes prominently
+#   #       5. Note rate limit or quota changes
+#   #       6. Specify which documentation sections need updates
+#   #       7. Provide example API calls for new functionality
+        
+#   #   - path: "src/controllers/**"
+#   #     instructions: |
+#   #       Review controller changes for:
+#   #       - New endpoints that need API documentation
+#   #       - Modified validation rules
+#   #       - Changed error responses
+#   #       - New query parameters or path variables
+#   #       - Changes to request/response formats
+        
+#   #   - path: "src/models/**"
+#   #     instructions: |
+#   #       For model changes:
+#   #       - Identify schema changes that affect API responses
+#   #       - Note new fields, removed fields, or type changes
+#   #       - Flag any fields that need documentation
+        
+#   #   - path: "src/middleware/**"
+#   #     instructions: |
+#   #       For middleware changes:
+#   #       - Authentication/authorization changes
+#   #       - Rate limiting modifications
+#   #       - CORS policy updates
+#   #       - Request validation changes
+        
+#   #   - path: "config/**"
+#   #     instructions: |
+#   #       For configuration changes:
+#   #       - Environment variable changes
+#   #       - Feature flags that affect API behavior
+#   #       - Default value changes
+#   #       - Deprecation timelines
+
+# # Auto-review settings
+# # auto_review:
+# #   enabled: true
+# #   auto_incremental_review: true
+  
+#   # Trigger review on documentation-related keywords
+#   labels: ["documentation", "api-change", "breaking-change"]
+
+# # Custom labeling for documentation needs
+# labeling_instructions:
+#   - label: "needs-docs"
+#     instructions: "Apply when PR introduces new features, API changes, or modifications requiring documentation updates"
+#   - label: "breaking-change"
+#     instructions: "Apply when PR contains breaking API changes"
+#   - label: "api-change"
+#     instructions: "Apply when PR modifies any API endpoint, parameters, or responses"
+
+# # Tool configurations with documentation focus
+# tools:
+#   ast-grep:
+#     essential_rules: true
+  
+#   # Enable linters that help with documentation
+#   markdownlint:
+#     enabled: true
+  
+#   eslint:
+#     enabled: true
+  
+#   # Enable OpenAPI/Swagger validation if applicable
+#   spectral:
+#     enabled: true
+
+# # Knowledge base settings
+# knowledge_base:
+#   opt_out: false
+  
+# code_guidelines:
+#   enabled: true
+#   instructions: |
+#     # Documentation Standards
+    
+#     1. **API Changes Must Be Documented**
+#        - Every API endpoint change requires documentation
+#        - Include request/response examples
+#        - Document all query parameters and their validation rules
+    
+#     2. **Breaking Changes**
+#        - Must be clearly marked in PR description
+#        - Include migration guide
+#        - Specify deprecation timeline if applicable
+    
+#     3. **Documentation Checklist for API Changes**
+#        - [ ] Endpoint URL and HTTP method documented
+#        - [ ] All parameters (path, query, body) documented with types
+#        - [ ] Request/response examples provided
+#        - [ ] Error responses documented
+#        - [ ] Rate limits specified
+#        - [ ] Authentication requirements clear
+#        - [ ] Breaking changes highlighted
+#        - [ ] Deprecation notices added if applicable
+
+# # Specific instructions for generating documentation summaries
+
+
+# pull_requests:
+#   scope: auto
+
 
 reviews:
-  # Use assertive profile to ensure documentation issues are highlighted
-  profile: assertive
-  
-  # Request changes when documentation updates are needed
-  request_changes_workflow: true
-  
-  # Enable high-level summary with custom placeholder
-  high_level_summary: true
-  high_level_summary_placeholder: |
-    @coderabbitai summary
-    
-    **Documentation Impact Analysis:**
-    Please provide a detailed analysis of documentation changes required for this PR, including:
-    - API endpoint changes (new, modified, or deprecated)
-    - Query parameter additions or modifications
-    - Request/response body changes
-    - Rate limit or quota changes
-    - Authentication/authorization changes
-    - Breaking changes that affect existing integrations
-    - New features that need user guides
-    - Error codes or validation rule changes
-  
-  # Enable detailed review features
-  review_status: true
-  changed_files_summary: true
-  sequence_diagrams: true
-  assess_linked_issues: true
-  
-  # Path-specific instructions for documentation focus
-  path_instructions:
-    - path: "api/**"
-      instructions: |
-        For all API changes:
-        1. Identify ALL endpoint modifications (URL, method, parameters)
-        2. List new query parameters with their types and validation rules
-        3. Document request/response body changes with examples
-        4. Flag any breaking changes prominently
-        5. Note rate limit or quota changes
-        6. Specify which documentation sections need updates
-        7. Provide example API calls for new functionality
-        
-    - path: "src/controllers/**"
-      instructions: |
-        Review controller changes for:
-        - New endpoints that need API documentation
-        - Modified validation rules
-        - Changed error responses
-        - New query parameters or path variables
-        - Changes to request/response formats
-        
-    - path: "src/models/**"
-      instructions: |
-        For model changes:
-        - Identify schema changes that affect API responses
-        - Note new fields, removed fields, or type changes
-        - Flag any fields that need documentation
-        
-    - path: "src/middleware/**"
-      instructions: |
-        For middleware changes:
-        - Authentication/authorization changes
-        - Rate limiting modifications
-        - CORS policy updates
-        - Request validation changes
-        
-    - path: "config/**"
-      instructions: |
-        For configuration changes:
-        - Environment variable changes
-        - Feature flags that affect API behavior
-        - Default value changes
-        - Deprecation timelines
-
-# Auto-review settings
-auto_review:
-  enabled: true
-  auto_incremental_review: true
-  
-  # Trigger review on documentation-related keywords
-  labels: ["documentation", "api-change", "breaking-change"]
-
-# Custom labeling for documentation needs
-labeling_instructions:
-  - label: "needs-docs"
-    instructions: "Apply when PR introduces new features, API changes, or modifications requiring documentation updates"
-  - label: "breaking-change"
-    instructions: "Apply when PR contains breaking API changes"
-  - label: "api-change"
-    instructions: "Apply when PR modifies any API endpoint, parameters, or responses"
-
-# Tool configurations with documentation focus
-tools:
-  ast-grep:
-    essential_rules: true
-  
-  # Enable linters that help with documentation
-  markdownlint:
-    enabled: true
-  
-  eslint:
-    enabled: true
-  
-  # Enable OpenAPI/Swagger validation if applicable
-  spectral:
-    enabled: true
-
-# Knowledge base settings
-knowledge_base:
-  opt_out: false
-  
-code_guidelines:
-  enabled: true
-  instructions: |
-    # Documentation Standards
-    
-    1. **API Changes Must Be Documented**
-       - Every API endpoint change requires documentation
-       - Include request/response examples
-       - Document all query parameters and their validation rules
-    
-    2. **Breaking Changes**
-       - Must be clearly marked in PR description
-       - Include migration guide
-       - Specify deprecation timeline if applicable
-    
-    3. **Documentation Checklist for API Changes**
-       - [ ] Endpoint URL and HTTP method documented
-       - [ ] All parameters (path, query, body) documented with types
-       - [ ] Request/response examples provided
-       - [ ] Error responses documented
-       - [ ] Rate limits specified
-       - [ ] Authentication requirements clear
-       - [ ] Breaking changes highlighted
-       - [ ] Deprecation notices added if applicable
-
-# Specific instructions for generating documentation summaries
-pull_requests:
-  scope: auto
   custom_instructions: |
     For every PR review, include a dedicated section titled "📘 Documentation Requirements" that contains:
     
