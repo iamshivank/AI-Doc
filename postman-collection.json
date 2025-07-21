@@ -1,0 +1,718 @@
+{
+  "info": {
+    "name": "Enterprise API - Employee & Department Management",
+    "description": "Complete API collection for testing employee and department management endpoints with advanced filtering and analytics",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.0.0"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "your-secret-api-key-123",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check API health status and system information"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Service is UP', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.status).to.eql('UP');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "API Documentation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Get comprehensive API documentation"
+          }
+        }
+      ],
+      "description": "Basic health and documentation endpoints"
+    },
+    {
+      "name": "👥 Employee Management",
+      "item": [
+        {
+          "name": "Get All Employees (Basic)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "Get all employees without any filters"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success field', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success');",
+                  "    pm.expect(responseJson.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response has data array', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('data');",
+                  "    pm.expect(responseJson.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Employees with Date Filtering",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees?startDate=2022-01-01&endDate=2023-12-31&sortBy=startDate&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2022-01-01",
+                  "description": "Filter employees hired after this date"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2023-12-31",
+                  "description": "Filter employees hired before this date"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "startDate",
+                  "description": "Sort by start date"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort in descending order"
+                }
+              ]
+            },
+            "description": "Get employees hired between specific dates, sorted by hire date"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Filtered results respect date range', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const startDate = new Date('2022-01-01');",
+                  "    const endDate = new Date('2023-12-31');",
+                  "    ",
+                  "    responseJson.data.forEach(function(employee) {",
+                  "        const employeeDate = new Date(employee.startDate);",
+                  "        pm.expect(employeeDate >= startDate).to.be.true;",
+                  "        pm.expect(employeeDate <= endDate).to.be.true;",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Employees with Salary Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees?minSalary=80000&maxSalary=150000&department=Engineering&sortBy=salary&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"],
+              "query": [
+                {
+                  "key": "minSalary",
+                  "value": "80000",
+                  "description": "Minimum salary filter"
+                },
+                {
+                  "key": "maxSalary",
+                  "value": "150000",
+                  "description": "Maximum salary filter"
+                },
+                {
+                  "key": "department",
+                  "value": "Engineering",
+                  "description": "Filter by department"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "salary",
+                  "description": "Sort by salary"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Highest salary first"
+                }
+              ]
+            },
+            "description": "Get Engineering employees with salary between 80K-150K"
+          }
+        },
+        {
+          "name": "Search Employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees?search=alice&status=active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "alice",
+                  "description": "Search in name, email, role, department"
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "description": "Filter by active status"
+                }
+              ]
+            },
+            "description": "Search for employees by name, email, role, or department"
+          }
+        },
+        {
+          "name": "Get Employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "1"]
+            },
+            "description": "Get a specific employee by their ID"
+          }
+        },
+        {
+          "name": "Create New Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@company.com\",\n  \"role\": \"Senior Developer\",\n  \"department\": \"Engineering\",\n  \"salary\": 95000,\n  \"startDate\": \"2024-01-15\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "Create a new employee record"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Employee created successfully', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.success).to.be.true;",
+                  "    pm.expect(responseJson.data).to.have.property('id');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salary\": 105000,\n  \"role\": \"Lead Developer\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/employees/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "1"]
+            },
+            "description": "Update an existing employee's information"
+          }
+        },
+        {
+          "name": "Delete Employee (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "1"]
+            },
+            "description": "Soft delete an employee (marks as inactive)"
+          }
+        },
+        {
+          "name": "Get Employee Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees/analytics/overview",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees", "analytics", "overview"]
+            },
+            "description": "Get comprehensive employee analytics and statistics"
+          }
+        }
+      ],
+      "description": "All employee-related endpoints including CRUD operations and analytics"
+    },
+    {
+      "name": "🏢 Department Management",
+      "item": [
+        {
+          "name": "Get All Departments (Basic)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments"]
+            },
+            "description": "Get all departments without any filters"
+          }
+        },
+        {
+          "name": "Get Departments with Budget Filtering",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments?minBudget=1000000&maxBudget=3000000&sortBy=budget&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments"],
+              "query": [
+                {
+                  "key": "minBudget",
+                  "value": "1000000",
+                  "description": "Minimum budget filter"
+                },
+                {
+                  "key": "maxBudget",
+                  "value": "3000000",
+                  "description": "Maximum budget filter"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "budget",
+                  "description": "Sort by budget"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Highest budget first"
+                }
+              ]
+            },
+            "description": "Get departments with budget between 1M-3M, sorted by budget"
+          }
+        },
+        {
+          "name": "Get Departments with Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments?startDate=2020-01-01&endDate=2023-12-31&minEmployees=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2020-01-01",
+                  "description": "Filter by establishment start date"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2023-12-31",
+                  "description": "Filter by establishment end date"
+                },
+                {
+                  "key": "minEmployees",
+                  "value": "10",
+                  "description": "Minimum employee count"
+                }
+              ]
+            },
+            "description": "Get departments established between dates with minimum employee count"
+          }
+        },
+        {
+          "name": "Filter Departments by Location",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments?location=California",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments"],
+              "query": [
+                {
+                  "key": "location",
+                  "value": "California",
+                  "description": "Filter by location"
+                }
+              ]
+            },
+            "description": "Get departments filtered by location"
+          }
+        },
+        {
+          "name": "Get Department by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments", "1"]
+            },
+            "description": "Get a specific department by ID"
+          }
+        },
+        {
+          "name": "Create New Department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Data Science\",\n  \"description\": \"Advanced analytics and machine learning\",\n  \"manager\": \"Dr. Sarah Wilson\",\n  \"budget\": 1800000,\n  \"location\": \"Seattle, WA\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/departments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments"]
+            },
+            "description": "Create a new department"
+          }
+        },
+        {
+          "name": "Update Department",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"budget\": 2800000,\n  \"manager\": \"John Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/departments/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments", "1"]
+            },
+            "description": "Update an existing department"
+          }
+        },
+        {
+          "name": "Delete Department",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments", "1"]
+            },
+            "description": "Delete a department permanently"
+          }
+        }
+      ],
+      "description": "All department-related endpoints including CRUD operations"
+    },
+    {
+      "name": "📊 Analytics & Reports",
+      "item": [
+        {
+          "name": "Department Budget Analysis",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments/finance/budget-analysis",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments", "finance", "budget-analysis"]
+            },
+            "description": "Get comprehensive budget analysis for all departments"
+          }
+        },
+        {
+          "name": "Department Performance Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments/metrics/performance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments", "metrics", "performance"]
+            },
+            "description": "Get department performance metrics and benchmarking"
+          }
+        },
+        {
+          "name": "Performance Metrics with Filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/departments/metrics/performance?startDate=2020-01-01&budgetTier=enterprise&teamCategory=large",
+              "host": ["{{base_url}}"],
+              "path": ["api", "departments", "metrics", "performance"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2020-01-01",
+                  "description": "Filter by establishment date"
+                },
+                {
+                  "key": "budgetTier",
+                  "value": "enterprise",
+                  "description": "Filter by budget tier (enterprise/growth/startup)"
+                },
+                {
+                  "key": "teamCategory",
+                  "value": "large",
+                  "description": "Filter by team size (large/medium/small)"
+                }
+              ]
+            },
+            "description": "Get filtered performance metrics for enterprise-level large departments"
+          }
+        }
+      ],
+      "description": "Analytics and reporting endpoints for business insights"
+    },
+    {
+      "name": "🧪 Test Scenarios",
+      "item": [
+        {
+          "name": "Pagination Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees?page=1&limit=2",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "2",
+                  "description": "Items per page"
+                }
+              ]
+            },
+            "description": "Test pagination with small page size"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Pagination works correctly', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('pagination');",
+                  "    pm.expect(responseJson.pagination.currentPage).to.eql(1);",
+                  "    pm.expect(responseJson.data.length).to.be.at.most(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complex Multi-Filter Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees?search=engineer&department=Engineering&minSalary=90000&startDate=2021-01-01&sortBy=salary&sortOrder=desc&page=1&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "engineer",
+                  "description": "Search term"
+                },
+                {
+                  "key": "department",
+                  "value": "Engineering",
+                  "description": "Department filter"
+                },
+                {
+                  "key": "minSalary",
+                  "value": "90000",
+                  "description": "Minimum salary"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2021-01-01",
+                  "description": "Hire date filter"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "salary",
+                  "description": "Sort field"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Sort order"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Page size"
+                }
+              ]
+            },
+            "description": "Test multiple filters combined together"
+          }
+        },
+        {
+          "name": "Authentication Test (No API Key)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/employees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "Test authentication failure without API key"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Authentication required', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Test scenarios for edge cases and validation"
+    }
+  ]
+} 
