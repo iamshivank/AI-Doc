@@ -66,6 +66,51 @@ router.get('/', auth, (req, res) => {
       );
     }
 
+    // NEW: Filter by date range using startDate/endDate
+    if (req.query.startDate) {
+      filteredEmployees = filteredEmployees.filter(
+        (emp) => new Date(emp.startDate) >= new Date(req.query.startDate)
+      );
+    }
+
+    if (req.query.endDate) {
+      filteredEmployees = filteredEmployees.filter(
+        (emp) => new Date(emp.startDate) <= new Date(req.query.endDate)
+      );
+    }
+
+    // NEW: Filter by salary range
+    if (req.query.minSalary) {
+      const minSalary = parseInt(req.query.minSalary);
+      filteredEmployees = filteredEmployees.filter(
+        (emp) => emp.salary >= minSalary
+      );
+    }
+
+    if (req.query.maxSalary) {
+      const maxSalary = parseInt(req.query.maxSalary);
+      filteredEmployees = filteredEmployees.filter(
+        (emp) => emp.salary <= maxSalary
+      );
+    }
+
+    // NEW: Advanced sorting
+    if (req.query.sortBy) {
+      const sortField = req.query.sortBy;
+      const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
+
+      filteredEmployees.sort((a, b) => {
+        if (typeof a[sortField] === 'string') {
+          return sortOrder * a[sortField].localeCompare(b[sortField]);
+        } else if (typeof a[sortField] === 'number') {
+          return sortOrder * (a[sortField] - b[sortField]);
+        } else if (sortField === 'startDate') {
+          return sortOrder * (new Date(a[sortField]) - new Date(b[sortField]));
+        }
+        return 0;
+      });
+    }
+
     // Pagination
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -260,8 +305,8 @@ router.delete('/:id', auth, (req, res) => {
   }
 });
 
-// GET employee statistics
-router.get('/stats/summary', auth, (req, res) => {
+// GET employee analytics and metrics
+router.get('/analytics/overview', auth, (req, res) => {
   try {
     const activeEmployees = employees.filter((emp) => emp.status === 'active');
     const departmentCounts = activeEmployees.reduce((acc, emp) => {

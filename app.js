@@ -66,7 +66,10 @@ app.get('/', (req, res) => {
           list: {
             method: 'GET',
             path: '/',
-            description: 'Get all employees with filtering and pagination',
+            description:
+              'Get all employees with advanced filtering, sorting, and pagination',
+            queryParams:
+              'search, department, status, startDate, endDate, minSalary, maxSalary, sortBy, sortOrder, page, limit',
           },
           get: {
             method: 'GET',
@@ -88,10 +91,10 @@ app.get('/', (req, res) => {
             path: '/:id',
             description: 'Deactivate employee',
           },
-          stats: {
+          analytics: {
             method: 'GET',
-            path: '/stats/summary',
-            description: 'Get employee statistics',
+            path: '/analytics/overview',
+            description: 'Get comprehensive employee analytics and metrics',
           },
         },
       },
@@ -101,7 +104,10 @@ app.get('/', (req, res) => {
           list: {
             method: 'GET',
             path: '/',
-            description: 'Get all departments with filtering and sorting',
+            description:
+              'Get all departments with advanced filtering, sorting, and date range support',
+            queryParams:
+              'location, minBudget, maxBudget, startDate, endDate, minEmployees, maxEmployees, sortBy, sortOrder',
           },
           get: {
             method: 'GET',
@@ -125,8 +131,20 @@ app.get('/', (req, res) => {
           },
           budget: {
             method: 'GET',
-            path: '/analysis/budget',
-            description: 'Get budget analysis',
+            path: '/finance/budget-analysis',
+            description: 'Get comprehensive financial and budget analysis',
+          },
+          performance: {
+            method: 'GET',
+            path: '/metrics/performance',
+            description:
+              'Get department performance metrics and benchmarking data',
+            queryParams: {
+              startDate: 'Filter by establishment start date (YYYY-MM-DD)',
+              endDate: 'Filter by establishment end date (YYYY-MM-DD)',
+              budgetTier: 'Filter by budget tier (enterprise/growth/startup)',
+              teamCategory: 'Filter by team size category (large/medium/small)',
+            },
           },
         },
       },

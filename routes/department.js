@@ -56,6 +56,42 @@ router.get('/', auth, (req, res) => {
       );
     }
 
+    // NEW: Filter by maximum budget
+    if (req.query.maxBudget) {
+      const maxBudget = parseInt(req.query.maxBudget);
+      filteredDepartments = filteredDepartments.filter(
+        (dept) => dept.budget <= maxBudget
+      );
+    }
+
+    // NEW: Filter by establishment date range
+    if (req.query.startDate) {
+      filteredDepartments = filteredDepartments.filter(
+        (dept) => new Date(dept.established) >= new Date(req.query.startDate)
+      );
+    }
+
+    if (req.query.endDate) {
+      filteredDepartments = filteredDepartments.filter(
+        (dept) => new Date(dept.established) <= new Date(req.query.endDate)
+      );
+    }
+
+    // NEW: Filter by employee count range
+    if (req.query.minEmployees) {
+      const minEmployees = parseInt(req.query.minEmployees);
+      filteredDepartments = filteredDepartments.filter(
+        (dept) => dept.employeeCount >= minEmployees
+      );
+    }
+
+    if (req.query.maxEmployees) {
+      const maxEmployees = parseInt(req.query.maxEmployees);
+      filteredDepartments = filteredDepartments.filter(
+        (dept) => dept.employeeCount <= maxEmployees
+      );
+    }
+
     // Sort by budget, name, or employeeCount
     if (req.query.sortBy) {
       const sortField = req.query.sortBy;
@@ -234,8 +270,8 @@ router.delete('/:id', auth, (req, res) => {
   }
 });
 
-// GET department budget analysis
-router.get('/analysis/budget', auth, (req, res) => {
+// GET department financial analytics
+router.get('/finance/budget-analysis', auth, (req, res) => {
   try {
     const totalBudget = departments.reduce((sum, dept) => sum + dept.budget, 0);
     const avgBudget = totalBudget / departments.length;
@@ -268,6 +304,146 @@ router.get('/analysis/budget', auth, (req, res) => {
       success: false,
       error: 'Internal server error while generating budget analysis',
       message: error.message,
+    });
+  }
+});
+
+// NEW: GET department performance metrics and comparison
+router.get('/metrics/performance', auth, (req, res) => {
+  try {
+    const now = new Date();
+    const departmentMetrics = departments
+      .map((dept) => {
+        const ageInYears = Math.floor(
+          (now - new Date(dept.established)) / (1000 * 60 * 60 * 24 * 365)
+        );
+        const budgetPerEmployee = dept.budget / dept.employeeCount;
+
+        // Filter by date range if provided
+        if (
+          req.query.startDate &&
+          new Date(dept.established) < new Date(req.query.startDate)
+        ) {
+          return null;
+        }
+        if (
+          req.query.endDate &&
+          new Date(dept.established) > new Date(req.query.endDate)
+        ) {
+          return null;
+        }
+
+        return {
+          id: dept.id,
+          name: dept.name,
+          location: dept.location,
+          establishedDate: dept.established,
+          performance: {
+            budgetEfficiency: Math.round(budgetPerEmployee),
+            teamSize: dept.employeeCount,
+            totalBudget: dept.budget,
+            ageInYears: ageInYears,
+            performanceScore: Math.round(
+              (dept.budget / 1000000) * 30 +
+                dept.employeeCount * 2 +
+                ageInYears * 5
+            ),
+          },
+          category: {
+            budgetTier:
+              dept.budget > 2000000
+                ? 'enterprise'
+                : dept.budget > 1000000
+                ? 'growth'
+                : 'startup',
+            teamCategory:
+              dept.employeeCount > 20
+                ? 'large'
+                : dept.employeeCount > 10
+                ? 'medium'
+                : 'small',
+          },
+        };
+      })
+      .filter((dept) => dept !== null);
+
+    // Apply additional filters
+    if (req.query.budgetTier) {
+      const tier = req.query.budgetTier.toLowerCase();
+      departmentMetrics = departmentMetrics.filter(
+        (dept) => dept.category.budgetTier === tier
+      );
+    }
+
+    if (req.query.teamCategory) {
+      const category = req.query.teamCategory.toLowerCase();
+      departmentMetrics = departmentMetrics.filter(
+        (dept) => dept.category.teamCategory === category
+      );
+    }
+
+    // Sort by performance score by default
+    departmentMetrics.sort(
+      (a, b) => b.performance.performanceScore - a.performance.performanceScore
+    );
+
+    const summary = {
+      totalDepartments: departmentMetrics.length,
+      averagePerformanceScore: Math.round(
+        departmentMetrics.reduce(
+          (sum, dept) => sum + dept.performance.performanceScore,
+          0
+        ) / departmentMetrics.length
+      ),
+      topPerformer: departmentMetrics[0],
+      categoryBreakdown: {
+        budgetTiers: {
+          enterprise: departmentMetrics.filter(
+            (d) => d.category.budgetTier === 'enterprise'
+          ).length,
+          growth: departmentMetrics.filter(
+            (d) => d.category.budgetTier === 'growth'
+          ).length,
+          startup: departmentMetrics.filter(
+            (d) => d.category.budgetTier === 'startup'
+          ).length,
+        },
+        teamSizes: {
+          large: departmentMetrics.filter(
+            (d) => d.category.teamCategory === 'large'
+          ).length,
+          medium: departmentMetrics.filter(
+            (d) => d.category.teamCategory === 'medium'
+          ).length,
+          small: departmentMetrics.filter(
+            (d) => d.category.teamCategory === 'small'
+          ).length,
+        },
+      },
+    };
+
+    res.json({
+      success: true,
+      data: {
+        departments: departmentMetrics,
+        summary: summary,
+      },
+      filters: {
+        dateRange: {
+          startDate: req.query.startDate || null,
+          endDate: req.query.endDate || null,
+        },
+        budgetTier: req.query.budgetTier || null,
+        teamCategory: req.query.teamCategory || null,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error while generating performance metrics',
+      message: error.message,
+      timestamp: new Date().toISOString(),
     });
   }
 });
