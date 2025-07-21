@@ -1,14 +1,15 @@
-custom_prompt: |
-  Provide a detailed summary of this pull request with a focus on:
+reviews:
+  custom_prompt: |
+    Provide a detailed summary of this pull request with a focus on:
 
-  - What code was added, removed, or changed
-  - Any new functions, APIs, or classes introduced
-  - API changes (new endpoints, query parameters, request/response body changes)
-  - Any breaking changes
-  - Any test coverage impacts
-  - Any documentation-related updates
-  - Any relevant security implications (auth, data validation, access control)
+    - What code was added, removed, or changed
+    - Any new functions, APIs, or classes introduced
+    - API changes (new endpoints, query parameters, request/response body changes)
+    - Any breaking changes
+    - Any test coverage impacts
+    - Any documentation-related updates
+    - Any relevant security implications (auth, data validation, access control)
 
-  Format the output using Markdown with clear headings and bullet points. Include short code snippets only if helpful for understanding.
+    Format the output using Markdown with clear headings and bullet points. Include short code snippets only if helpful for understanding.
 
-  At the end, provide a section titled **"📘 API Documentation Note"** summarizing what the docs team should update in ReadMe.
+    At the end, provide a section titled **"📘 API Documentation Note"** summarizing what the docs team should update in ReadMe.
