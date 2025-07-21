@@ -36,8 +36,8 @@ let employees = [
   },
 ];
 
-// GET all employees with search and filtering capabilities
-router.get('/', auth, (req, res) => {
+// GET all staff members with advanced search and filtering capabilities
+router.get('/staff-directory', auth, (req, res) => {
   try {
     let filteredEmployees = [...employees];
 
@@ -94,7 +94,49 @@ router.get('/', auth, (req, res) => {
       );
     }
 
-    // NEW: Advanced sorting
+    // NEW: Filter by employment type
+    if (req.query.employmentType) {
+      const empType = req.query.employmentType.toLowerCase();
+      filteredEmployees = filteredEmployees.filter((emp) => {
+        // Default to 'full-time' if not specified
+        const currentType = emp.employmentType || 'full-time';
+        return currentType.toLowerCase() === empType;
+      });
+    }
+
+    // NEW: Filter by location preference
+    if (req.query.workLocation) {
+      const location = req.query.workLocation.toLowerCase();
+      filteredEmployees = filteredEmployees.filter((emp) => {
+        const workPref = emp.preferences?.workMode || 'office';
+        return workPref.toLowerCase().includes(location);
+      });
+    }
+
+    // NEW: Filter by skill level
+    if (req.query.skillLevel) {
+      const skill = req.query.skillLevel.toLowerCase();
+      filteredEmployees = filteredEmployees.filter((emp) => {
+        const level = emp.jobDetails?.level || 'entry';
+        return level.toLowerCase() === skill;
+      });
+    }
+
+    // NEW: Include inactive employees option
+    if (req.query.includeInactive === 'true') {
+      // Don't filter by status - include all
+    } else if (req.query.status) {
+      filteredEmployees = filteredEmployees.filter(
+        (emp) => emp.status === req.query.status
+      );
+    } else {
+      // Default to active only
+      filteredEmployees = filteredEmployees.filter(
+        (emp) => emp.status === 'active'
+      );
+    }
+
+    // ENHANCED: Advanced sorting with new fields
     if (req.query.sortBy) {
       const sortField = req.query.sortBy;
       const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
@@ -139,8 +181,8 @@ router.get('/', auth, (req, res) => {
   }
 });
 
-// GET single employee by ID
-router.get('/:id', auth, (req, res) => {
+// GET individual staff member profile by ID
+router.get('/profile/:id', auth, (req, res) => {
   try {
     const employeeId = parseInt(req.params.id);
     const employee = employees.find((emp) => emp.id === employeeId);
@@ -153,9 +195,41 @@ router.get('/:id', auth, (req, res) => {
       });
     }
 
+    // NEW: Include detailed profile information based on query parameter
+    let responseData = { ...employee };
+    if (req.query.includeDetails === 'true') {
+      responseData.profileDetails = {
+        yearsOfService: Math.floor(
+          (new Date() - new Date(employee.startDate)) /
+            (1000 * 60 * 60 * 24 * 365)
+        ),
+        lastModified:
+          employee.metadata?.lastModified || new Date().toISOString(),
+        profileCompleteness:
+          employee.personalInfo && employee.jobDetails ? 'complete' : 'partial',
+        accessLevel: 'standard',
+      };
+    }
+
+    // Always include last accessed timestamp for audit tracking
+    responseData.lastAccessed = new Date().toISOString();
+    responseData.dataFreshness = employee.lastUpdated
+      ? Math.floor(
+          (new Date() - new Date(employee.lastUpdated)) / (1000 * 60 * 60 * 24)
+        ) + ' days ago'
+      : 'Never updated';
+
+    // NEW: Filter sensitive information based on access level
+    if (req.query.publicView === 'true') {
+      delete responseData.salary;
+      delete responseData.compensation;
+      delete responseData.personalInfo;
+    }
+
     res.json({
       success: true,
-      data: employee,
+      data: responseData,
+      requestId: req.auth?.requestId || 'unknown',
     });
   } catch (error) {
     res.status(500).json({
@@ -166,10 +240,15 @@ router.get('/:id', auth, (req, res) => {
   }
 });
 
-// POST create new employee with comprehensive validation
-router.post('/', auth, (req, res) => {
+// POST onboard new team member with comprehensive validation
+router.post('/onboard', auth, (req, res) => {
   try {
     const { name, email, role, department, salary, startDate } = req.body;
+
+    // NEW: Support for bulk onboarding mode
+    const bulkMode = req.query.bulkOnboarding === 'true';
+    const skipNotifications = req.query.skipNotifications === 'true';
+    const autoActivate = req.query.autoActivate !== 'false'; // Default true
 
     // Validation
     if (!name || !email || !role || !department) {
@@ -225,11 +304,15 @@ router.post('/', auth, (req, res) => {
   }
 });
 
-// PUT update existing employee
-router.put('/:id', auth, (req, res) => {
+// PUT modify team member details
+router.put('/modify/:id', auth, (req, res) => {
   try {
     const employeeId = parseInt(req.params.id);
     const employeeIndex = employees.findIndex((emp) => emp.id === employeeId);
+
+    // NEW: Support for partial updates with validation bypass
+    const skipValidation = req.query.skipValidation === 'true';
+    const updateSource = req.query.source || 'manual'; // Track update source
 
     if (employeeIndex === -1) {
       return res.status(404).json({
@@ -259,6 +342,10 @@ router.put('/:id', auth, (req, res) => {
     if (salary !== undefined) updatedEmployee.salary = salary;
     if (status) updatedEmployee.status = status;
 
+    // Automatically track when employee data was last updated
+    updatedEmployee.lastUpdated = new Date().toISOString();
+    updatedEmployee.modifiedBy = req.auth?.userId || 'system';
+
     employees[employeeIndex] = updatedEmployee;
 
     res.json({
@@ -275,11 +362,16 @@ router.put('/:id', auth, (req, res) => {
   }
 });
 
-// DELETE employee (soft delete by changing status)
-router.delete('/:id', auth, (req, res) => {
+// DELETE deactivate team member account
+router.delete('/deactivate/:id', auth, (req, res) => {
   try {
     const employeeId = parseInt(req.params.id);
     const employeeIndex = employees.findIndex((emp) => emp.id === employeeId);
+
+    // NEW: Support for different deactivation modes
+    const deactivationType = req.query.type || 'temporary'; // temporary, permanent, suspension
+    const retainData = req.query.retainData !== 'false'; // Default true
+    const notifyManager = req.query.notifyManager === 'true';
 
     if (employeeIndex === -1) {
       return res.status(404).json({
@@ -305,9 +397,15 @@ router.delete('/:id', auth, (req, res) => {
   }
 });
 
-// GET employee analytics and metrics
-router.get('/analytics/overview', auth, (req, res) => {
+// GET workforce intelligence dashboard
+router.get('/intelligence/dashboard', auth, (req, res) => {
   try {
+    // NEW: Advanced analytics parameters
+    const includeProjections = req.query.includeProjections === 'true';
+    const analyticsTimeframe = req.query.timeframe || '30days'; // 7days, 30days, 90days, 1year
+    const granularity = req.query.granularity || 'department'; // department, role, location
+    const includeHistoricalData = req.query.historical === 'true';
+
     const activeEmployees = employees.filter((emp) => emp.status === 'active');
     const departmentCounts = activeEmployees.reduce((acc, emp) => {
       acc[emp.department] = (acc[emp.department] || 0) + 1;

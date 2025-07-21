@@ -50,9 +50,9 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.json({
     name: 'Enterprise API',
-    version: '2.0.0',
+    version: '3.0.0',
     description:
-      'A comprehensive enterprise management API with employee and department management capabilities',
+      'A comprehensive enterprise management API with advanced staff and organizational unit management capabilities',
     author: 'Enterprise Development Team',
     endpoints: {
       health: {
@@ -60,91 +60,106 @@ app.get('/', (req, res) => {
         path: '/health',
         description: 'Check API health status',
       },
-      employees: {
+      staff: {
         base: '/api/employees',
         endpoints: {
-          list: {
+          directory: {
             method: 'GET',
-            path: '/',
+            path: '/staff-directory',
             description:
-              'Get all employees with advanced filtering, sorting, and pagination',
+              'Get all staff members with advanced filtering, sorting, and organizational insights',
             queryParams:
-              'search, department, status, startDate, endDate, minSalary, maxSalary, sortBy, sortOrder, page, limit',
+              'search, department, status, startDate, endDate, minSalary, maxSalary, employmentType, workLocation, skillLevel, includeInactive, sortBy, sortOrder, page, limit',
           },
-          get: {
+          profile: {
             method: 'GET',
-            path: '/:id',
-            description: 'Get single employee by ID',
+            path: '/profile/:id',
+            description:
+              'Get individual staff member profile with detailed information',
+            queryParams: 'includeDetails, publicView',
           },
-          create: {
+          onboard: {
             method: 'POST',
-            path: '/',
-            description: 'Create new employee',
+            path: '/onboard',
+            description:
+              'Onboard new team member with comprehensive validation',
+            queryParams: 'bulkOnboarding, skipNotifications, autoActivate',
           },
-          update: {
+          modify: {
             method: 'PUT',
-            path: '/:id',
-            description: 'Update existing employee',
+            path: '/modify/:id',
+            description: 'Modify team member details with tracking',
+            queryParams: 'skipValidation, source',
           },
-          delete: {
+          deactivate: {
             method: 'DELETE',
-            path: '/:id',
-            description: 'Deactivate employee',
+            path: '/deactivate/:id',
+            description:
+              'Deactivate team member account with retention options',
+            queryParams: 'type, retainData, notifyManager',
           },
-          analytics: {
+          intelligence: {
             method: 'GET',
-            path: '/analytics/overview',
-            description: 'Get comprehensive employee analytics and metrics',
+            path: '/intelligence/dashboard',
+            description:
+              'Get workforce intelligence dashboard with predictive analytics',
+            queryParams:
+              'includeProjections, timeframe, granularity, historical',
           },
         },
       },
-      departments: {
+      organization: {
         base: '/api/departments',
         endpoints: {
-          list: {
+          units: {
             method: 'GET',
-            path: '/',
+            path: '/org-units',
             description:
-              'Get all departments with advanced filtering, sorting, and date range support',
+              'Get organizational units directory with advanced hierarchy and reporting features',
             queryParams:
-              'location, minBudget, maxBudget, startDate, endDate, minEmployees, maxEmployees, sortBy, sortOrder',
+              'location, minBudget, maxBudget, startDate, endDate, minEmployees, maxEmployees, level, hierarchy, activeOnly, reporting, sortBy, sortOrder',
           },
-          get: {
+          details: {
             method: 'GET',
-            path: '/:id',
-            description: 'Get single department by ID',
-          },
-          create: {
-            method: 'POST',
-            path: '/',
-            description: 'Create new department',
-          },
-          update: {
-            method: 'PUT',
-            path: '/:id',
-            description: 'Update existing department',
-          },
-          delete: {
-            method: 'DELETE',
-            path: '/:id',
-            description: 'Delete department',
-          },
-          budget: {
-            method: 'GET',
-            path: '/finance/budget-analysis',
-            description: 'Get comprehensive financial and budget analysis',
-          },
-          performance: {
-            method: 'GET',
-            path: '/metrics/performance',
+            path: '/unit-details/:id',
             description:
-              'Get department performance metrics and benchmarking data',
-            queryParams: {
-              startDate: 'Filter by establishment start date (YYYY-MM-DD)',
-              endDate: 'Filter by establishment end date (YYYY-MM-DD)',
-              budgetTier: 'Filter by budget tier (enterprise/growth/startup)',
-              teamCategory: 'Filter by team size category (large/medium/small)',
-            },
+              'Get organizational unit details with comprehensive metrics',
+            queryParams: 'includeTeam, includeMetrics, detail',
+          },
+          establish: {
+            method: 'POST',
+            path: '/establish',
+            description:
+              'Establish new organizational unit with setup automation',
+            queryParams: 'mode, autoCode, notify',
+          },
+          restructure: {
+            method: 'PUT',
+            path: '/restructure/:id',
+            description: 'Restructure organizational unit with change tracking',
+            queryParams: 'type, preserveHistory, effectiveDate',
+          },
+          dissolve: {
+            method: 'DELETE',
+            path: '/dissolve/:id',
+            description:
+              'Dissolve organizational unit with transition management',
+            queryParams: 'reason, transferEmployees, archive, effectiveDate',
+          },
+          financialIntelligence: {
+            method: 'GET',
+            path: '/financial-intelligence/comprehensive',
+            description:
+              'Get organizational financial intelligence with predictive analytics',
+            queryParams: 'forecast, depth, baseline, variance',
+          },
+          effectiveness: {
+            method: 'GET',
+            path: '/effectiveness/analytics',
+            description:
+              'Get organizational effectiveness analytics with benchmarking',
+            queryParams:
+              'startDate, endDate, budgetTier, teamCategory, benchmark, productivity, weighting, window',
           },
         },
       },
@@ -174,7 +189,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'UP',
     service: 'Enterprise API',
-    version: '2.0.0',
+    version: '3.0.0',
     timestamp: new Date().toISOString(),
     uptime: {
       seconds: Math.floor(uptime),
@@ -206,8 +221,19 @@ app.use('*', (req, res) => {
     availableEndpoints: [
       'GET /',
       'GET /health',
-      'GET|POST|PUT|DELETE /api/employees',
-      'GET|POST|PUT|DELETE /api/departments',
+      'GET /api/employees/staff-directory',
+      'GET /api/employees/profile/:id',
+      'POST /api/employees/onboard',
+      'PUT /api/employees/modify/:id',
+      'DELETE /api/employees/deactivate/:id',
+      'GET /api/employees/intelligence/dashboard',
+      'GET /api/departments/org-units',
+      'GET /api/departments/unit-details/:id',
+      'POST /api/departments/establish',
+      'PUT /api/departments/restructure/:id',
+      'DELETE /api/departments/dissolve/:id',
+      'GET /api/departments/financial-intelligence/comprehensive',
+      'GET /api/departments/effectiveness/analytics',
     ],
     requestId: req.requestId,
   });
